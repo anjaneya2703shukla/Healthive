@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Healthive — Understand Your Health. Build Better Habits.</title>
+<meta name="description" content="Healthive is a frontend prototype for personal wellness tracking: record sleep, water, activity and mood, then explore trends, analytics and a health education library. All data stays in your browser."/>
+<!-- Apply saved theme before first paint to avoid a flash of the wrong theme -->
+<script>
+(function(){try{var s=JSON.parse(localStorage.getItem('healthive.settings.v1')||'{}');
+var t=s.theme||(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   css/style.css  —  Healthive design system
+   ============================================================ */
+:root{
+  --bg:#F6F4EE; --surface:#FFFFFF; --surface-2:#EFECE3; --border:#E3DFD3; --border-strong:#CFC9B9;
+  --ink:#1B2B32; --ink-2:#54646C; --ink-3:#84908F;
+  --teal:#0E6E5F; --teal-strong:#0A574B; --teal-soft:#DFEFE9; --teal-softer:#EEF5F1; --on-teal:#FFFFFF;
+  --clay:#B0552F; --clay-soft:#F6E7DD;
+  --amber:#8F7420; --amber-soft:#F2EDD9;
+  --danger:#A8402A; --danger-soft:#F6E3DD;
+  --c-sleep:#4E7186; --c-water:#1F7A96; --c-activity:#BC6437; --c-mood:#7F8A3B;
+  --soft-sleep:#E8EFF3; --soft-water:#E1EFF2; --soft-activity:#F7EAE1; --soft-mood:#EFEFE0;
+  --chart-grid:rgba(27,43,50,.09);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'Instrument Sans',system-ui,sans-serif;
+  --radius:14px; --radius-sm:10px;
+  --shadow-sm:0 1px 2px rgba(23,32,35,.05);
+  --shadow-md:0 2px 6px rgba(23,32,35,.06),0 14px 34px -14px rgba(23,32,35,.16);
+  color-scheme:light;
+}
+[data-theme="dark"]{
+  --bg:#0F1718; --surface:#172425; --surface-2:#1D2D2E; --border:#27393A; --border-strong:#3A5051;
+  --ink:#E9EFEA; --ink-2:#A5B5B0; --ink-3:#71827D;
+  --teal:#3BB49A; --teal-strong:#5FCBB4; --teal-soft:#17403A; --teal-softer:#13322D; --on-teal:#071E19;
+  --clay:#DB9068; --clay-soft:#39281F;
+  --amber:#C9AC57; --amber-soft:#332C18;
+  --danger:#E08A72; --danger-soft:#3C241C;
+  --c-sleep:#8FB6CB; --c-water:#6FC3D8; --c-activity:#E0976F; --c-mood:#BDBA72;
+  --soft-sleep:#1B2C35; --soft-water:#143138; --soft-activity:#37261D; --soft-mood:#2D2E1E;
+  --chart-grid:rgba(233,239,234,.09);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.25);
+  --shadow-md:0 2px 6px rgba(0,0,0,.3),0 14px 34px -14px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
+body.locked{overflow:hidden}
+img,svg{display:block}
+a{color:var(--teal);text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3{line-height:1.25;font-weight:600}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:-9999px;top:8px;background:var(--teal);color:var(--on-teal);
+  padding:8px 14px;border-radius:8px;z-index:200;font-weight:600}
+.skip-link:focus{left:8px}
+.ic{width:18px;height:18px;flex:none}
+
+/* ---------- App shell ---------- */
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+.sidebar{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px;
+  background:var(--surface);border-right:1px solid var(--border);padding:20px 14px;z-index:60}
+.brand{display:flex;align-items:center;gap:11px;padding:2px 6px 14px}
+.brand-mark{width:36px;height:36px;border-radius:11px;background:var(--teal);color:var(--on-teal);
+  display:grid;place-items:center;flex:none}
+.brand-mark .ic{width:20px;height:20px}
+.brand-word{font-family:var(--display);font-size:21px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+.brand-tag{display:none}
+.side-close{display:none}
+.side-nav{display:flex;flex-direction:column;gap:2px;flex:1}
+.nav-item{position:relative;display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:10px;
+  color:var(--ink-2);font-weight:500;font-size:14px;text-decoration:none;transition:background .15s,color .15s}
+.nav-item:hover{background:var(--surface-2);color:var(--ink);text-decoration:none}
+.nav-item.active{background:var(--teal-soft);color:var(--teal-strong);font-weight:600}
+[data-theme="dark"] .nav-item.active{color:var(--teal-strong)}
+.nav-item.active::before{content:"";position:absolute;left:-14px;top:8px;bottom:8px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--teal)}
+.side-foot{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--border);padding-top:14px}
+.local-note{display:flex;gap:9px;font-size:12px;color:var(--ink-3);padding:0 6px;line-height:1.45}
+.local-note .ic{width:15px;height:15px;margin-top:1px;color:var(--teal)}
+.side-user{display:flex;align-items:center;gap:10px;width:100%;background:none;border:1px solid var(--border);
+  border-radius:12px;padding:9px 10px;text-align:left;transition:border-color .15s,background .15s}
+.side-user:hover{border-color:var(--border-strong);background:var(--surface-2)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--teal-soft);color:var(--teal-strong);
+  display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.su-meta{flex:1;min-width:0}
+.su-name{display:block;font-size:13.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.su-sub{display:block;font-size:11.5px;color:var(--ink-3)}
+.su-chev{color:var(--ink-3)}
+
+.main-wrap{display:flex;flex-direction:column;min-width:0}
+.topbar{display:none}
+.view{flex:1;width:100%;max-width:1120px;margin:0 auto;padding:34px 40px 60px}
+.view:focus{outline:none}
+.foot{max-width:1120px;width:100%;margin:0 auto;padding:0 40px 26px;font-size:12px;color:var(--ink-3);text-align:center}
+.drawer-overlay{position:fixed;inset:0;background:rgba(15,23,24,.45);z-index:55;opacity:0;transition:opacity .2s}
+.drawer-overlay.show{opacity:1}
+
+/* ---------- Typography & page head ---------- */
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+.page-title{font-family:var(--display);font-weight:600;font-size:clamp(24px,3vw,31px);letter-spacing:-.01em}
+.page-sub{color:var(--ink-2);margin-top:5px;font-size:14.5px;max-width:60ch}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:24px;flex-wrap:wrap}
+.head-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+/* ---------- Buttons, chips, badges ---------- */
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--teal);color:var(--on-teal);
+  border:1px solid transparent;border-radius:10px;padding:9px 16px;font-size:14px;font-weight:600;
+  transition:background .15s,transform .06s;text-decoration:none}
+.btn:hover{background:var(--teal-strong);text-decoration:none}
+.btn:active{transform:translateY(1px)}
+.btn-ghost{background:var(--surface);border-color:var(--border);color:var(--ink)}
+.btn-ghost:hover{background:var(--surface-2);border-color:var(--border-strong)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:var(--danger);filter:brightness(.92)}
+.btn-sm{padding:6px 12px;font-size:13px;border-radius:9px}
+.btn-quiet{background:none;border:0;color:var(--teal);font-weight:600;font-size:13px;padding:4px 6px}
+.btn-quiet:hover{text-decoration:underline}
+.icon-btn{width:34px;height:34px;display:grid;place-items:center;border:1px solid transparent;border-radius:9px;
+  background:none;color:var(--ink-2);transition:background .15s,color .15s}
+.icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+.icon-btn.danger:hover{background:var(--danger-soft);color:var(--danger)}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink-2);
+  background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:4px 11px}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:var(--amber)}
+.mchip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px}
+.mchip .ic{width:13px;height:13px}
+.mchip.sleep{background:var(--soft-sleep);color:var(--c-sleep)}
+.mchip.water{background:var(--soft-water);color:var(--c-water)}
+.mchip.activity{background:var(--soft-activity);color:var(--c-activity)}
+.mchip.mood{background:var(--soft-mood);color:var(--c-mood)}
+
+/* ---------- Cards & grids ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+.card-pad{padding:20px}
+.card-title{font-size:15px;font-weight:600}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;
+  border-bottom:1px solid var(--border);flex-wrap:wrap}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.ov-main{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;margin-top:16px}
+.ov-bottom{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:16px;margin-top:16px}
+.page{animation:rise .28s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+/* ---------- Summary cards ---------- */
+.stat-card{padding:17px 18px;display:flex;flex-direction:column;gap:12px}
+.stat-top{display:flex;align-items:center;gap:10px}
+.stat-ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:none}
+.stat-ic .ic{width:16px;height:16px}
+.stat-ic.sleep{background:var(--soft-sleep);color:var(--c-sleep)}
+.stat-ic.water{background:var(--soft-water);color:var(--c-water)}
+.stat-ic.activity{background:var(--soft-activity);color:var(--c-activity)}
+.stat-ic.mood{background:var(--soft-mood);color:var(--c-mood)}
+.stat-label{font-size:13px;font-weight:600;color:var(--ink-2)}
+.stat-value{font-family:var(--display);font-size:29px;font-weight:600;line-height:1;color:var(--ink)}
+.stat-unit{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--ink-3);margin-left:4px}
+.stat-foot{display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
+.delta{display:inline-flex;align-items:center;font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px}
+.delta.up{background:var(--teal-soft);color:var(--teal-strong)}
+.delta.down{background:var(--clay-soft);color:var(--clay)}
+.delta.flat{background:var(--surface-2);color:var(--ink-3)}
+.delta-note{font-size:11.5px;color:var(--ink-3)}
+
+/* ---------- Segmented control ---------- */
+.seg{display:inline-flex;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;padding:5px 12px;border-radius:8px;font-size:13px;font-weight:500;
+  color:var(--ink-2);transition:background .15s,color .15s}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--teal-strong);font-weight:600;box-shadow:var(--shadow-sm)}
+
+/* ---------- Charts ---------- */
+.chart-box{position:relative;height:262px;padding:6px 14px 12px}
+.chart-fallback{height:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+  color:var(--ink-2);font-size:13.5px;text-align:center;padding:20px}
+.chart-fallback .ic{color:var(--amber)}
+
+/* ---------- Insights ---------- */
+.insights{display:flex;flex-direction:column;gap:10px}
+.insight{position:relative;border:1px solid var(--border);border-radius:12px;background:var(--surface);
+  padding:14px 15px;display:flex;gap:11px;align-items:flex-start}
+.insight.positive{background:var(--teal-softer);border-color:var(--teal-soft)}
+.ins-ic{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none;
+  background:var(--soft-sleep);color:var(--c-sleep)}
+.ins-ic.pos{background:var(--teal-soft);color:var(--teal-strong)}
+.ins-ic.info{background:var(--amber-soft);color:var(--amber)}
+.ins-text{font-size:13.5px;line-height:1.5;color:var(--ink)}
+.ins-dismiss{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:7px}
+.ins-why summary{font-size:12px;font-weight:600;color:var(--teal);cursor:pointer;list-style:none;margin-top:6px}
+.ins-why summary::-webkit-details-marker{display:none}
+.ins-why summary:hover{text-decoration:underline}
+.ins-why p{font-size:12px;color:var(--ink-3);margin-top:5px;line-height:1.5}
+.ins-note{font-size:11.5px;color:var(--ink-3);padding:0 4px}
+.ins-cta{margin-top:8px}
+
+/* ---------- Lists / entries ---------- */
+.row-list{list-style:none}
+.row-item{display:flex;align-items:center;gap:14px;padding:13px 20px;border-bottom:1px solid var(--border)}
+.row-item:last-child{border-bottom:0}
+.entry-date{width:52px;flex:none;text-align:center;border-right:1px solid var(--border);padding-right:12px}
+.ed-day{display:block;font-family:var(--display);font-size:20px;font-weight:600;line-height:1.1}
+.ed-mon{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}
+.entry-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.entry-actions{display:flex;gap:4px}
+.when{font-size:12.5px;font-weight:600;color:var(--ink-2);width:76px;flex:none}
+.qa-list{display:flex;flex-direction:column}
+.qa{display:flex;align-items:center;gap:13px;padding:14px 20px;border-bottom:1px solid var(--border);
+  color:var(--ink);text-decoration:none;transition:background .15s}
+.qa:last-child{border-bottom:0}
+.qa:hover{background:var(--surface-2);text-decoration:none}
+.qa-ic{width:34px;height:34px;border-radius:10px;background:var(--teal-softer);color:var(--teal-strong);
+  display:grid;place-items:center;flex:none}
+.qa-t{font-size:14px;font-weight:600}
+.qa-d{font-size:12.5px;color:var(--ink-3)}
+.qa-chev{margin-left:auto;color:var(--ink-3)}
+
+/* ---------- Forms ---------- */
+.field{margin-bottom:15px}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)}
+.unit-hint{font-weight:500;color:var(--ink-3);font-size:12px}
+.field input[type=date],.field input[type=number],.field input[type=text],.field input[type=search]{
+  width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);
+  color:var(--ink);font-family:inherit;font-size:14px;transition:border-color .15s,box-shadow .15s}
+.field input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px color-mix(in srgb,var(--teal) 22%,transparent)}
+.field input.invalid{border-color:var(--danger)}
+.field-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ferr{color:var(--danger);font-size:12.5px;margin-top:5px}
+.hint{font-size:12.5px;color:var(--ink-3)}
+.form-banner{background:var(--danger-soft);border:1px solid var(--danger);border-radius:10px;
+  padding:10px 13px;font-size:13.5px;color:var(--danger);margin-bottom:14px;font-weight:500}
+.edit-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--amber-soft);
+  color:var(--amber);border-radius:10px;padding:9px 13px;font-size:13px;margin-bottom:15px;font-weight:500}
+.form-actions{display:flex;align-items:center;gap:14px;margin-top:4px;flex-wrap:wrap}
+.mood-row{display:flex;align-items:center;gap:14px}
+.mood-row input[type=range]{flex:1;accent-color:var(--teal)}
+.mood-face{width:44px;height:44px;flex:none;transition:color .2s}
+.mood-value{font-size:13.5px;font-weight:600;min-width:78px;text-align:right}
+.mood-label-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.check{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:var(--ink-2);cursor:pointer}
+.check input{accent-color:var(--teal)}
+.notice{display:flex;gap:10px;align-items:flex-start;background:var(--amber-soft);border-radius:12px;
+  padding:12px 14px;font-size:13px;color:var(--ink-2);margin-bottom:18px}
+.notice .ic{color:var(--amber);margin-top:1px;width:16px;height:16px}
+.notice strong{color:var(--ink)}
+
+/* ---------- Wellness layout ---------- */
+.well-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;align-items:start}
+.list-count{font-size:12.5px;color:var(--ink-3)}
+.list-foot{padding:12px 20px;border-top:1px solid var(--border);text-align:center}
+
+/* ---------- Analytics ---------- */
+.stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.an-big{font-family:var(--display);font-size:27px;font-weight:600;line-height:1.1}
+.an-lab{font-size:12.5px;font-weight:600;color:var(--ink-2);margin-top:2px}
+.an-sub{font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.compare-card{display:flex;gap:12px;align-items:flex-start;padding:15px 18px;margin-bottom:16px}
+.cmp-ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:none}
+.compare-card h3{font-size:13.5px;margin-bottom:2px}
+.compare-card p{font-size:13px;color:var(--ink-2)}
+.an-two{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:16px;margin-bottom:16px}
+details.howto{margin-top:16px;font-size:13.5px;color:var(--ink-2)}
+details.howto summary{cursor:pointer;font-weight:600;color:var(--ink);list-style:none;display:flex;align-items:center;gap:7px}
+details.howto summary::-webkit-details-marker{display:none}
+details.howto summary .ic{width:15px;height:15px;color:var(--teal)}
+details.howto ul{margin:10px 0 0 18px;display:grid;gap:6px}
+.sum-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+
+/* ---------- Library ---------- */
+.lib-controls{display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:220px;max-width:420px}
+.search-wrap .ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-3);width:16px;height:16px}
+.search-wrap input{width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border);border-radius:10px;
+  background:var(--surface);color:var(--ink);font-family:inherit;font-size:14px}
+.search-wrap input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px color-mix(in srgb,var(--teal) 22%,transparent)}
+.cat-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px}
+.cat-btn{border:1px solid var(--border);background:var(--surface);color:var(--ink-2);border-radius:999px;
+  padding:6px 14px;font-size:12.5px;font-weight:600;transition:all .15s}
+.cat-btn:hover{border-color:var(--border-strong);color:var(--ink)}
+.cat-btn[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:var(--on-teal)}
+.lib-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.article-card{text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 19px;display:flex;flex-direction:column;gap:8px;transition:border-color .15s,box-shadow .15s;font-family:inherit}
+.article-card:hover{border-color:var(--teal);box-shadow:var(--shadow-md)}
+.ac-cat{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--teal)}
+.ac-title{font-family:var(--display);font-size:18px;font-weight:600;color:var(--ink)}
+.ac-intro{font-size:13.5px;color:var(--ink-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ac-read{font-size:13px;font-weight:600;color:var(--teal);display:inline-flex;align-items:center;gap:5px;margin-top:2px}
+.article{max-width:720px}
+.article .lede{font-size:16px;color:var(--ink-2);margin:10px 0 22px;line-height:1.65}
+.article h2{font-family:var(--display);font-size:20px;margin:24px 0 12px}
+.points{list-style:none;display:grid;gap:10px}
+.points li{display:flex;gap:10px;font-size:14.5px;line-height:1.6}
+.points .ic{color:var(--teal);margin-top:3px;width:15px;height:15px}
+.refs{list-style:none;display:grid;gap:8px;margin-top:10px}
+.refs li{font-size:13.5px;color:var(--ink-2)}
+.disclaimer{display:flex;gap:11px;background:var(--amber-soft);border-radius:12px;padding:14px 16px;
+  font-size:13px;color:var(--ink-2);margin-top:26px;line-height:1.55}
+.disclaimer .ic{color:var(--amber);flex:none;margin-top:1px}
+.disclaimer strong{color:var(--ink)}
+
+/* ---------- Settings ---------- */
+.set-stack{display:grid;gap:16px;max-width:720px}
+.set-row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:15px 20px;flex-wrap:wrap}
+.set-row>div{min-width:200px;flex:1}
+.set-row h3{font-size:14px;margin-bottom:2px}
+.set-row p{font-size:12.5px;color:var(--ink-3)}
+.data-actions{display:flex;gap:10px;flex-wrap:wrap;padding:16px 20px;border-top:1px solid var(--border)}
+
+/* ---------- Empty states ---------- */
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:40px 24px;gap:6px}
+.empty .ic{width:30px;height:30px;color:var(--ink-3);margin-bottom:6px}
+.empty h3{font-size:15px}
+.empty p{font-size:13.5px;color:var(--ink-2);max-width:40ch}
+.empty .btn{margin-top:12px}
+
+/* ---------- Modal & toasts ---------- */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,24,.5);z-index:100;display:grid;place-items:center;
+  padding:20px;opacity:0;transition:opacity .18s}
+.modal-overlay.show{opacity:1}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-md);
+  width:100%;max-width:430px;padding:22px;transform:translateY(8px);transition:transform .18s}
+.modal-overlay.show .modal{transform:none}
+.modal-title{font-family:var(--display);font-size:19px;margin-bottom:9px}
+.modal-body{font-size:14px;color:var(--ink-2);line-height:1.6}
+.modal-body strong{color:var(--ink)}
+.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+.toasts{position:fixed;bottom:22px;right:22px;z-index:120;display:flex;flex-direction:column;gap:9px}
+.toast{display:flex;align-items:center;gap:9px;background:var(--ink);color:var(--surface);font-size:13.5px;
+  font-weight:500;padding:11px 15px;border-radius:11px;box-shadow:var(--shadow-md);
+  opacity:0;transform:translateY(8px);transition:all .22s;max-width:340px}
+.toast.show{opacity:1;transform:none}
+.toast .ic{width:16px;height:16px;color:var(--teal)}
+[data-theme="dark"] .toast{background:#E9EFEA;color:#12211F}
+[data-theme="dark"] .toast .ic{color:var(--teal-strong)}
+.toast.error .ic{color:var(--clay)}
+
+/* ---------- Responsive ---------- */
+@media (max-width:1060px){
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .ov-main,.an-two{grid-template-columns:1fr}
+  .well-grid{grid-template-columns:1fr}
+}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;width:272px;transform:translateX(-102%);
+    transition:transform .22s ease;box-shadow:var(--shadow-md)}
+  .sidebar.open{transform:none}
+  .side-close{display:grid;place-items:center;margin-left:auto}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:50;
+    background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px}
+  .topbar .brand-word{font-size:19px}
+  .view{padding:22px 16px 50px}
+  .foot{padding:0 16px 22px}
+  .ov-bottom{grid-template-columns:1fr}
+  .lib-grid{grid-template-columns:1fr}
+  .toasts{left:16px;right:16px;bottom:16px;align-items:stretch}
+}
+@media (max-width:620px){
+  .grid-4,.stat3,.field-grid{grid-template-columns:1fr}
+  .row-item{flex-wrap:wrap}
+  .page-head{align-items:flex-start;flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#view">Skip to content</a>
+
+<div class="app">
+  <!-- ======================= SIDEBAR (js/app.js builds nav) ======================= -->
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19C5 9.5 11 4.5 20 4.5c0 9-5 14.5-15 14.5z"/><path d="M5 19c3-5 7-8 10.5-9.5"/></svg>
+      </span>
+      <span class="brand-word">Healthive</span>
+      <button class="icon-btn side-close" id="btnCloseSide" type="button" aria-label="Close menu"></button>
+    </div>
+    <nav class="side-nav" id="navList" aria-label="Sections"></nav>
+    <div class="side-foot">
+      <p class="local-note"><span data-icon="shield"></span><span><strong>Local prototype.</strong> Entries are stored only in this browser — nothing is sent to a server.</span></p>
+      <button class="side-user" id="sideUser" type="button">
+        <span class="avatar" id="sideUserInitials">H</span>
+        <span class="su-meta"><span class="su-name" id="sideUserName">…</span><span class="su-sub">Demo profile · Settings</span></span>
+        <span class="su-chev" data-icon="chevron"></span>
+      </button>
+    </div>
+  </aside>
+  <div class="drawer-overlay" id="drawerOverlay" hidden></div>
+
+  <div class="main-wrap">
+    <!-- Mobile top bar -->
+    <header class="topbar">
+      <div class="brand" style="padding:0">
+        <span class="brand-mark" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19C5 9.5 11 4.5 20 4.5c0 9-5 14.5-15 14.5z"/><path d="M5 19c3-5 7-8 10.5-9.5"/></svg></span>
+        <span class="brand-word">Healthive</span>
+      </div>
+      <button class="icon-btn" id="btnMenu" type="button" aria-label="Open menu" aria-controls="sidebar"></button>
+    </header>
+
+    <!-- Views are rendered here by the router -->
+    <main class="view" id="view" tabindex="-1"></main>
+
+    <footer class="foot">Healthive — frontend prototype. Educational wellness tracking only; not a medical device and not a substitute for professional advice. All data stays in your browser.</footer>
+  </div>
+</div>
+
+<div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+<div id="modalRoot"></div>
+<noscript><p style="padding:24px;text-align:center">Healthive needs JavaScript to run — it is a fully client-side prototype.</p></noscript>
+
+<!-- Chart.js (CDN dependency, documented in README). If it fails to load, every other
+     feature keeps working: charts are replaced by an explanatory fallback message. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+(function(){
+'use strict';
+
+/* ############################################################
+   js/data.js — storage, seed data, queries, settings
+   ############################################################ */
+
+const KEYS = { entries:'healthive.entries.v1', settings:'healthive.settings.v1', dismissed:'healthive.dismissed.v1' };
+const METRIC_KEYS = ['sleep','water','activity','mood'];
+const MOOD_LABELS = ['Low','Fair','Okay','Good','Great'];
+
+const METRICS = {
+  sleep:    { label:'Sleep',    icon:'moon',   colorVar:'--c-sleep'    },
+  water:    { label:'Water',    icon:'droplet',colorVar:'--c-water'    },
+  activity: { label:'Activity', icon:'pulse',  colorVar:'--c-activity' },
+  mood:     { label:'Mood',     icon:'smile',  colorVar:'--c-mood'     }
+};
+
+const $  = (s, r=document)=>r.querySelector(s);
+const $$ = (s, r=document)=>[...r.querySelectorAll(s)];
+const esc = s=>String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* --- localStorage helpers (versioned keys; a failed write shows an error toast) --- */
+function loadJSON(key, fallback){ try{ const raw=localStorage.getItem(key); return raw===null?fallback:JSON.parse(raw); }catch(e){ return fallback; } }
+function saveJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){ toast('error','Could not save to localStorage (private mode or storage full).'); } }
+
+let entries = [];
+let settings = {};
+let dismissed = [];
+
+/* --- Date helpers (ISO strings keep comparisons and ranges trivial) --- */
+const pad = n=>String(n).padStart(2,'0');
+const toISO = d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const todayISO = ()=>toISO(new Date());
+const parseISO = iso=>{ const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d); };
+const addDaysISO = (iso,n)=>{ const [y,m,d]=iso.split('-').map(Number); return toISO(new Date(y,m-1,d+n)); };
+const dayRange = n=>{ const end=todayISO(); return {start:addDaysISO(end,-(n-1)), end}; };
+const prevDayRange = n=>{ const end=addDaysISO(dayRange(n).start,-1); return {start:addDaysISO(end,-(n-1)), end}; };
+const diffDays = (a,b)=>Math.round((parseISO(b)-parseISO(a))/86400000);
+const fmtDate = iso=>parseISO(iso).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
+const fmtDateLong = iso=>parseISO(iso).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const fmtDayShort = iso=>parseISO(iso).toLocaleDateString(undefined,{weekday:'short'});
+const fmtDayNum  = iso=>parseISO(iso).toLocaleDateString(undefined,{day:'numeric',month:'short'});
+function relDate(iso){ if(iso===todayISO())return'Today'; if(iso===addDaysISO(todayISO(),-1))return'Yesterday'; return fmtDate(iso); }
+
+/* --- Deterministic RNG so the first-run sample dataset is coherent, not random noise --- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+const uid = ()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const round1 = n=>Math.round(n*10)/10;
+
+function seedEntries(){
+  const out=[], rnd=mulberry32(7);
+  for(let i=20;i>=0;i--){
+    const date=addDaysISO(todayISO(),-i), wd=parseISO(date).getDay();
+    const e={ id:uid(), date };
+    e.sleep   = round1(Math.min(9.2, Math.max(5.6, 6.6 + rnd()*1.6 + (wd===0||wd===6?0.7:0))));
+    e.water   = 4 + Math.floor(rnd()*5);                       // 4–8 glasses
+    const rest = rnd() < (wd===0 ? 0.75 : 0.12);               // most Sundays are rest days → activity left unrecorded
+    if(!rest) e.activity = 15 + Math.round(rnd()/0.05)*5 || 20 + Math.floor(rnd()*13)*5; // 20–80 min
+    e.mood = Math.max(1, Math.min(5, Math.round(2.6 + rnd()*1.9 + ((e.activity||0)>55?0.4:0) - (e.sleep<6.4?0.7:0))));
+    out.push(e);
+  }
+  return out.sort((a,b)=>a.date<b.date?1:-1);
+}
+
+function initData(){
+  settings  = loadJSON(KEYS.settings, null) || { name:'Alex Morgan', waterUnit:'glasses', theme:document.documentElement.getAttribute('data-theme')||'light' };
+  dismissed = loadJSON(KEYS.dismissed, []);
+  const raw = localStorage.getItem(KEYS.entries);
+  if(raw===null){ entries = seedEntries(); saveJSON(KEYS.entries, entries); }  // first run → sample dataset
+  else { entries = loadJSON(KEYS.entries, []); }                               // "[]" after user clears → stay empty
+  entries.sort((a,b)=>a.date<b.date?1:-1);                                     // newest first, everywhere
+}
+const saveEntries   = ()=>saveJSON(KEYS.entries, entries);
+const saveSettings  = ()=>saveJSON(KEYS.settings, settings);
+const saveDismissed = ()=>saveJSON(KEYS.dismissed, dismissed);
+
+/* --- Queries: every view & chart reads through these — one source of truth --- */
+const entryByDate = d=>entries.find(e=>e.date===d);
+const entriesInRange = (s,e)=>entries.filter(x=>x.date>=s && x.date<=e);
+function metricSeries(metric, range){        // aligned array, null = day not recorded
+  const out=[]; for(let d=range.start; d<=range.end; d=addDaysISO(d,1)){ const e=entryByDate(d); out.push(e && e[metric]!=null ? e[metric] : null); }
+  return out;
+}
+const recorded = (metric, range)=>entriesInRange(range.start, range.end).map(e=>e[metric]).filter(v=>v!=null);
+const avg = a=>a.reduce((s,v)=>s+v,0)/a.length;
+function latestValue(metric){ for(const e of entries){ if(e[metric]!=null) return {value:e[metric], date:e.date}; } return null; }
+const periodAvg = (metric, range)=>{ const v=recorded(metric,range); return v.length?avg(v):null; };
+function weekdayAverages(metric, range){     // Mon..Sun, null when a weekday has no recorded days
+  const buckets={}; for(let d=range.start; d<=range.end; d=addDaysISO(d,1)){
+    const e=entryByDate(d); if(!e||e[metric]==null)continue; const i=(parseISO(d).getDay()+6)%7; (buckets[i]=buckets[i]||[]).push(e[metric]);
+  }
+  return Array.from({length:7},(_,i)=>buckets[i]?round1(avg(buckets[i])):null);
+}
+
+/* --- CRUD --- */
+function upsertEntry(date, fields){
+  let e=entries.find(x=>x.date===date);
+  if(!e){ e={id:uid(), date}; entries.push(e); }
+  for(const k of METRIC_KEYS){ if(k in fields){ if(fields[k]==null) delete e[k]; else e[k]=fields[k]; } }
+  if(!METRIC_KEYS.some(k=>e[k]!=null)) entries=entries.filter(x=>x.id!==e.id); // all fields cleared → remove the day
+  entries.sort((a,b)=>a.date<b.date?1:-1); saveEntries();
+}
+function deleteEntry(id){ entries=entries.filter(e=>e.id!==id); saveEntries(); }
+
+/* --- Display formatting (unit preference applies here, never in storage) --- */
+const t1 = n=>Number.isInteger(n)?String(n):String(round1(n));
+function fmtValue(metric, v){
+  if(metric==='sleep')    return t1(v)+' h';
+  if(metric==='activity') return t1(v)+' min';
+  if(metric==='mood')     return v+'/5';
+  return settings.waterUnit==='ml' ? Math.round(v*250).toLocaleString('en-US')+' ml' : t1(v)+(v===1?' glass':' glasses');
+}
+function unitShort(metric){
+  if(metric==='sleep')return'h'; if(metric==='activity')return'min';
+  if(metric==='mood')return'/5'; return settings.waterUnit==='ml'?'ml':'gl';
+}
+function tooltipVal(metric, v){
+  if(v==null)return''; if(metric==='mood')return v+'/5 — '+MOOD_LABELS[v-1]; return fmtValue(metric,v);
+}
+
+/* ############################################################
+   Library content — concise, sourced, no fabricated claims
+   ############################################################ */
+const LIB_CATS = ['Sleep & recovery','Physical activity','Nutrition fundamentals','Hydration','Stress management','Healthy habits'];
+const LIBRARY = [
+{ id:'sleep', cat:'Sleep & recovery', icon:'moon', title:'Understanding Healthy Sleep',
+  intro:'Sleep is when the body and mind recover from the day. This guide summarises widely published, general guidance on sleep habits.',
+  points:[
+    'General public-health guidance suggests most adults need about 7–9 hours of sleep per night; individual needs vary.',
+    'Going to bed — and especially waking up — at consistent times helps support a stable sleep–wake rhythm.',
+    'A short wind-down routine (dim lights, quieter activities, screens away) can make falling asleep easier.',
+    'Caffeine can stay in the body for many hours; many people find it easier to sleep when they avoid it late in the day.',
+    'Daytime physical activity and natural light exposure are commonly associated with better-quality sleep.',
+    'If you regularly sleep poorly despite good habits, or feel very sleepy during the day, raise it with a qualified health professional.'],
+  refs:[['CDC — About Sleep','https://www.cdc.gov/sleep'],['National Sleep Foundation — sleep duration recommendations','https://www.sleepfoundation.org'],['NIH / NHLBI — Sleep deprivation','https://www.nhlbi.nih.gov/health/sleep-deprivation']]},
+{ id:'activity', cat:'Physical activity', icon:'pulse', title:'Moving More, Safely',
+  intro:'Regular movement supports energy, mobility and long-term health. The figures below are published international guidelines for adults — not personal targets.',
+  points:[
+    'WHO guidance for adults (18–64): at least 150–300 minutes of moderate-intensity aerobic activity per week, or 75–150 minutes of vigorous activity, or an equivalent combination.',
+    'Muscle-strengthening activity on 2 or more days per week is also recommended for adults.',
+    'Some activity is better than none — short bouts, even a few minutes, add up across the day.',
+    'If you have been inactive, start with small amounts and increase gradually.',
+    'If you have a health condition or concerns about starting exercise, check with a qualified professional first.'],
+  refs:[['WHO — Physical activity fact sheet','https://www.who.int/news-room/fact-sheets/detail/physical-activity'],['CDC — Physical Activity Basics','https://www.cdc.gov/physical-activity-basics']]},
+{ id:'nutrition', cat:'Nutrition fundamentals', icon:'leaf', title:'Building a Balanced Plate',
+  intro:'Nutrition advice is full of noise. These points reflect long-standing guidance from the World Health Organization on healthy eating.',
+  points:[
+    'Variety matters: build meals from different food groups — vegetables, fruit, whole grains, legumes, nuts, and protein sources.',
+    'WHO recommends at least 400 g (about five portions) of fruit and vegetables per day.',
+    'WHO suggests keeping free sugars to under 10% of daily energy intake, with additional benefits below 5%.',
+    'WHO advises keeping salt below 5 g per day (about one teaspoon).',
+    'No single food or supplement is a shortcut — overall patterns matter more than individual ingredients.',
+    'For personal dietary needs (allergies, conditions, sport), consult a registered dietitian or doctor.'],
+  refs:[['WHO — Healthy diet fact sheet','https://www.who.int/news-room/fact-sheets/detail/healthy-diet']]},
+{ id:'hydration', cat:'Hydration', icon:'droplet', title:'Hydration Basics',
+  intro:'Hydration needs differ from person to person and day to day. This guide covers practical, general indicators rather than one universal number.',
+  points:[
+    'There is no single daily water target that fits everyone — needs vary with body size, climate and activity.',
+    'Thirst is a reliable everyday guide for most healthy adults.',
+    'Urine colour is a simple practical indicator: pale yellow generally suggests adequate hydration for most people.',
+    'All drinks and water-rich foods contribute to daily fluid intake; plain water is a good default choice.',
+    'European (EFSA) reference values suggest about 2.0 L/day for women and 2.5 L/day for men from all food and drink sources combined — not plain water alone.',
+    'Sweat losses during exercise or hot weather increase needs; drink steadily rather than large amounts at once.'],
+  refs:[['NHS — Water, drinks and hydration','https://www.nhs.uk/live-well/eat-well/food-guidelines-and-food-standards/water-drinks-nutrition/'],['EFSA (2010) — Dietary Reference Values for water','https://www.efsa.europa.eu']]},
+{ id:'stress', cat:'Stress management', icon:'wind', title:'Everyday Stress Management',
+  intro:'Short-term stress is a normal part of life. What helps is having reliable ways to recover. These are general wellbeing strategies, not treatment.',
+  points:[
+    'Physical activity, time outdoors and regular sleep are among the most consistently helpful everyday buffers for stress.',
+    'Slow breathing or relaxation exercises can calm the body\u2019s stress response in the moment.',
+    'Staying connected — talking with people you trust — is strongly associated with coping well.',
+    'Notice unhelpful loops like constant news or notification checking, and build in offline breaks.',
+    'If stress feels persistent, overwhelming, or interferes with daily life, speaking to a qualified professional is a sensible next step — it is a normal thing to do.'],
+  refs:[['NHS — Every Mind Matters','https://www.nhs.uk/every-mind-matters/'],['WHO — Stress (questions and answers)','https://www.who.int/news-room/questions-and-answers/item/stress']]},
+{ id:'habits', cat:'Healthy habits', icon:'calendar', title:'Making Habits Stick',
+  intro:'Wellness tracking only helps if the habit survives busy weeks. These principles come from general behaviour-change guidance.',
+  points:[
+    'Start small and specific: “10-minute walk after lunch” is easier to repeat than “exercise more”.',
+    'Anchor new habits to existing routines — the existing habit acts as the reminder.',
+    'Make the healthy option the easy option: prepare the environment in advance (kit by the door, bottle on the desk).',
+    'Self-monitoring — like recording entries here — builds awareness, which is the first step in changing a pattern.',
+    'Missing a day is normal. Consistency across weeks matters more than any single day.'],
+  refs:[['NHS — Live Well','https://www.nhs.uk/live-well/'],['WHO — Healthy diet fact sheet (for example goals)','https://www.who.int/news-room/fact-sheets/detail/healthy-diet']]}
+];
+const ARTICLE_DISCLAIMER = 'This article is general educational information compiled from the sources listed above. It is not personal medical advice, and Healthive is not a medical service. For anything about your own health, speak to a qualified professional.';
+
+/* ############################################################
+   js/ui.js — icons, toasts, modals, small components
+   ############################################################ */
+const ICONS = {
+  menu:'<path d="M4 7h16M4 12h16M4 17h16"/>', x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  grid:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  pulse:'<path d="M3 12h4l2.5-6 4.5 12 2.5-6H21"/>',
+  chart:'<path d="M6 20v-8M12 20V5M18 20v-5"/><path d="M3 20h18"/>',
+  book:'<path d="M12 6c-1.5-1.3-3.7-2-6.5-2v14c2.8 0 5 .7 6.5 2 1.5-1.3 3.7-2 6.5-2V4c-2.8 0-5 .7-6.5 2z"/><path d="M12 6v14"/>',
+  sliders:'<path d="M4 7h9M18.5 7H20M4 17h4M13 17h7"/><circle cx="15.5" cy="7" r="2.2"/><circle cx="10.5" cy="17" r="2.2"/>',
+  droplet:'<path d="M12 3.5c-3.6 3.3-6 6.4-6 9.4a6 6 0 0 0 12 0c0-3-2.4-6.1-6-9.4z"/>',
+  moon:'<path d="M20 13.5A8 8 0 1 1 10.5 4 6.5 6.5 0 0 0 20 13.5z"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/>',
+  smile:'<circle cx="12" cy="12" r="9"/><path d="M8.5 14.3c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8"/><path d="M9 9.4h.01M15 9.4h.01"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+  pencil:'<path d="M15.5 5.5l3 3L8.3 18.7 4 20l1.3-4.3L15.5 5.5z"/>',
+  trash:'<path d="M4 7h16M9.5 7V5h5v2M6.5 7l.8 12a2 2 0 0 0 2 1.9h5.4a2 2 0 0 0 2-1.9l.8-12"/><path d="M10 11v6M14 11v6"/>',
+  check:'<path d="M5 13l4 4L19 7"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  alert:'<path d="M12 4L2.5 20h19L12 4z"/><path d="M12 10v4M12 17h.01"/>',
+  download:'<path d="M12 4v11M7.5 11.5L12 16l4.5-4.5M5 20h14"/>',
+  refresh:'<path d="M3 5v6h6"/><path d="M3.5 11a8.5 8.5 0 1 0 2.1-6L3 7.5"/>',
+  chevron:'<path d="M9 6l6 6-6 6"/>',
+  arrow:'<path d="M4 12h16M13 5l7 7-7 7"/>',
+  calendar:'<rect x="4" y="5.5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3.5v4M16 3.5v4"/>',
+  shield:'<path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/>',
+  leaf:'<path d="M5 19C5 9.5 11 4.5 20 4.5c0 9-5 14.5-15 14.5z"/><path d="M5 19c3-5 7-8 10.5-9.5"/>',
+  wind:'<path d="M3 8h9.5a2.8 2.8 0 1 0-2.8-2.8M3 12h13.5a2.8 2.8 0 1 1-2.8 2.8M3 16h6"/>',
+  external:'<path d="M14 4h6v6M20 4L11 13M19 13v6H5V5h6"/>',
+  trendUp:'<path d="M4 17l6-6 4 4 6-8"/><path d="M15 7h5v5"/>',
+  trendDown:'<path d="M4 7l6 6 4-4 6 8"/><path d="M15 17h5v-5"/>',
+  trendFlat:'<path d="M4 12h13"/><path d="M13 8l4 4-4 4"/>'
+};
+const icon = (n,cls='ic')=>`<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||''}</svg>`;
+// Pre-render static icon placeholders in the shell
+ $$('[data-icon]').forEach(s=>s.innerHTML=icon(s.dataset.icon));
+
+function toast(type,msg){
+  const t=document.createElement('div');
+  t.className='toast '+type;
+  t.innerHTML=icon(type==='success'?'check':type==='error'?'alert':'info')+'<span>'+msg+'</span>';
+  $('#toasts').appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),260); },3400);
+}
+
+let modalOpener=null;
+function openModal({title, body, confirmLabel='Confirm', cancelLabel='Cancel', danger=false, onConfirm}){
+  const root=$('#modalRoot');
+  modalOpener=document.activeElement;
+  root.innerHTML=`<div class="modal-overlay" id="mOverlay"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <h2 class="modal-title" id="mTitle">${title}</h2><div class="modal-body">${body}</div>
+    <div class="modal-actions"><button type="button" class="btn btn-ghost" id="mCancel">${esc(cancelLabel)}</button>
+    <button type="button" class="btn ${danger?'btn-danger':''}" id="mOk">${esc(confirmLabel)}</button></div></div></div>`;
+  const ov=$('#mOverlay'); requestAnimationFrame(()=>ov.classList.add('show'));
+  const close=()=>{ ov.classList.remove('show'); document.removeEventListener('keydown',onKey);
+    setTimeout(()=>{root.innerHTML='';},190); if(modalOpener)modalOpener.focus(); };
+  function onKey(e){
+    if(e.key==='Escape') close();
+    if(e.key==='Tab'){ const f=$$('#mOverlay button'); // small focus trap
+      if(!f.length)return; const first=f[0],last=f[f.length-1];
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();} }
+  }
+  document.addEventListener('keydown',onKey);
+  $('#mCancel').onclick=close;
+  ov.addEventListener('mousedown',e=>{ if(e.target===ov)close(); });
+  $('#mOk').onclick=()=>{ close(); if(onConfirm)onConfirm(); };
+  $('#mOk').focus();
+}
+const confirmDialog = opts=>openModal(opts);
+
+function emptyState(ic,title,text,action){
+  return `<div class="empty">${icon(ic)}<h3>${title}</h3><p>${text}</p>${action||''}</div>`;
+}
+
+/* ############################################################
+   js/charts.js — Chart.js builders with graceful CDN fallback
+   ############################################################ */
+let charts=[];
+const trackChart = c=>{ charts.push(c); return c; };
+function destroyCharts(){ charts.forEach(c=>{try{c.destroy();}catch(_){}}); charts=[]; }
+const cssVar = n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function applyChartDefaults(){
+  if(typeof Chart==='undefined')return;
+  Chart.defaults.font.family="'Instrument Sans',sans-serif";
+  Chart.defaults.font.size=12;
+  Chart.defaults.color=cssVar('--ink-3');
+  Chart.defaults.plugins.legend.display=false;
+  Chart.defaults.plugins.tooltip.backgroundColor=cssVar('--ink');
+  Chart.defaults.plugins.tooltip.titleColor=cssVar('--surface');
+  Chart.defaults.plugins.tooltip.bodyColor=cssVar('--surface');
+  Chart.defaults.plugins.tooltip.cornerRadius=8;
+  Chart.defaults.plugins.tooltip.padding=10;
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  Chart.defaults.animation=reduce?false:{duration:420};
+}
+function chartOrFallback(canvas, cfg){
+  if(typeof Chart==='undefined'){
+    const box=canvas.closest('.chart-box');
+    if(box) box.innerHTML=`<div class="chart-fallback">${icon('info')}<p>Charts are unavailable because the Chart.js CDN could not be reached.<br>Your data is safe — recording, history and statistics keep working.</p></div>`;
+    return null;
+  }
+  return trackChart(new Chart(canvas,cfg));
+}
+function barCfg(labels,data,color,metric){
+  return { type:'bar',
+    data:{ labels, datasets:[{ data, backgroundColor:color, hoverBackgroundColor:color, borderRadius:6, maxBarThickness:40 }] },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ tooltip:{ callbacks:{ label:c=>' '+tooltipVal(metric,c.parsed.y) } } },
+      scales:{
+        x:{ grid:{display:false}, border:{color:cssVar('--border')} },
+        y:{ beginAtZero:metric!=='sleep', ...(metric==='mood'?{min:0,max:5}:{}),
+            grid:{color:cssVar('--chart-grid')}, border:{display:false}, ticks:{maxTicksLimit:6} } } } };
+}
+function lineCfg(labels,data,color,metric,avgVal){
+  const ds=[{ data, borderColor:color, backgroundColor:color, pointRadius:3, pointBackgroundColor:color,
+              borderWidth:2, tension:.35, spanGaps:false }];
+  if(avgVal!=null) ds.push({ data:labels.map(()=>avgVal), borderColor:cssVar('--ink-3'), borderDash:[5,5],
+                             borderWidth:1.5, pointRadius:0 });
+  return { type:'line', data:{ labels, datasets:ds },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ tooltip:{ filter:i=>i.datasetIndex===0, callbacks:{ label:c=>' '+tooltipVal(metric,c.parsed.y) } } },
+      scales:{
+        x:{ grid:{display:false}, border:{color:cssVar('--border')}, ticks:{maxTicksLimit:8, autoSkip:true} },
+        y:{ beginAtZero:metric!=='sleep', ...(metric==='mood'?{min:0,max:5}:{}),
+            grid:{color:cssVar('--chart-grid')}, border:{display:false}, ticks:{maxTicksLimit:6} } } } };
+}
+function sparkline(series, color){       // tiny inline-SVG trend for the summary cards
+  const w=74,h=26,p=3, vals=series.filter(v=>v!=null);
+  if(vals.length<2) return `<span class="hint" style="font-size:11px">not enough points</span>`;
+  const min=Math.min(...vals), max=Math.max(...vals), span=(max-min)||1;
+  const pt=(v,i)=>{ const n=series.length, x=p+i*(w-2*p)/(n-1), y=h-p-((v-min)/span)*(h-2*p); return [x,y]; };
+  let seg='', cur=[];
+  series.forEach((v,i)=>{ if(v==null){ if(cur.length>1)seg+=`M${cur.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join('L')}`; cur=[]; } else cur.push(pt(v,i)); });
+  if(cur.length>1) seg+=`M${cur.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join('L')}`;
+  const last=pt(vals[vals.length-1], series.lastIndexOf(vals[vals.length-1]));
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">
+    <path d="${seg}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>
+    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="2.6" fill="${color}"/></svg>`;
+}
+
+/* ############################################################
+   Wellness insights — transparent, rule-based, dismissible
+   ############################################################ */
+const isDismissed = id=>dismissed.includes(id+'|'+todayISO());
+function dismissInsight(id){ dismissed.push(id+'|'+todayISO()); saveDismissed(); }
+
+function computeInsights(){
+  const out=[], today=todayISO();
+  const r7=dayRange(7), p7=prevDayRange(7), r14=dayRange(14);
+  const e7=entriesInRange(r7.start,r7.end), e7p=entriesInRange(p7.start,p7.end);
+
+  if(entries.length===0){
+    out.push({ id:'no-data', tone:'info', ic:'info',
+      text:'No entries yet. Record your first day of sleep, water, activity and mood to start building personal trends.',
+      why:'This appears because there are no entries stored in this browser. Insights are generated only from recorded data.',
+      action:{label:'Record first entry', href:'#/wellness'} });
+    return out;
+  }
+  if(e7.length===0){
+    const days=diffDays(entries[0].date, today);
+    out.push({ id:'stale', tone:'info', ic:'calendar',
+      text:`Your most recent entry is from ${fmtDate(entries[0].date)} — ${days} day${days===1?'':'s'} ago. A new entry keeps your trends current.`,
+      why:'Appears when no entries exist in the trailing 7 days. It is a reminder about data freshness, not a judgement about your habits.' });
+  }
+  if(e7.length>=1 && e7p.length>=1){
+    const a=e7.length, b=e7p.length;
+    const tail = a>b?`up from ${b} the week before`: a<b?`down from ${b} the week before`:`the same as the previous week (${b})`;
+    out.push({ id:'consistency', tone:a>=b?'positive':'neutral', ic:'check',
+      text:`You logged entries on ${a} of the last 7 days — ${tail}.`,
+      why:'Compares the number of days with any entry in the trailing 7 days against the 7 days before that. Purely descriptive.' });
+  }
+  const actC=recorded('activity',r7), actP=recorded('activity',p7);
+  if(actC.length>=2 && actP.length>=2){
+    const a=avg(actC), b=avg(actP), d=a-b, flat=Math.abs(d)<Math.max(5, b*0.1);
+    out.push({ id:'activity-trend', tone:flat?'neutral':'positive', ic:'pulse',
+      text: flat
+        ? `Your recorded activity is holding steady — about ${Math.round(a)} min on an average recorded day, similar to last week.`
+        : `Recorded activity averaged ${Math.round(a)} min/day in the last 7 days vs ${Math.round(b)} min/day the week before (${d>0?'+':''}${Math.round(d)} min).`,
+      why:'Compares the average of your recorded activity minutes (last 7 days) with the previous 7 days. Shown only when both periods have at least 2 recorded days. Rest days recorded as 0 are included. This is an observation about your data, not a fitness recommendation.' });
+  }
+  const sl=recorded('sleep',r7);
+  if(sl.length>=4){
+    const min=Math.min(...sl), max=Math.max(...sl), range=round1(max-min);
+    if(range>=2) out.push({ id:'sleep-var', tone:'neutral', ic:'moon',
+      text:`Your recorded sleep ranged from ${t1(min)} h to ${t1(max)} h across ${sl.length} nights — a spread of about ${range} h.`,
+      why:'Shown when the difference between your shortest and longest recorded night in the last 7 days is 2 hours or more (with at least 4 recorded nights). It describes variation in your entries only.' });
+  }
+  const counts=METRIC_KEYS.map(k=>recorded(k,r14).length);
+  const hi=counts.indexOf(Math.max(...counts)), lo=counts.indexOf(Math.min(...counts));
+  if(counts[hi]-counts[lo]>=3){
+    out.push({ id:'coverage', tone:'neutral', ic:'grid',
+      text:`You\u2019ve recorded ${METRICS[METRIC_KEYS[hi]].label.toLowerCase()} on ${counts[hi]} of the last 14 days, but ${METRICS[METRIC_KEYS[lo]].label.toLowerCase()} on only ${counts[lo]}. Logging ${METRICS[METRIC_KEYS[lo]].label.toLowerCase()} more often would round out your overview.`,
+      why:'Counts how many of the last 14 days have a value for each metric, then compares the most- with the least-recorded one. Shown when the gap is 3 days or more.' });
+  }
+  return out.slice(0,4);
+}
+function insightCard(ins){
+  const toneCls = ins.tone==='positive'?'positive':'';
+  const icCls = ins.tone==='positive'?'pos':ins.tone==='info'?'info':'';
+  return `<div class="insight ${toneCls}">
+    <span class="ins-ic ${icCls}">${icon(ins.ic)}</span>
+    <div style="flex:1;min-width:0">
+      <p class="ins-text">${ins.text}</p>
+      <details class="ins-why"><summary>Why am I seeing this?</summary><p>${ins.why}</p></details>
+      ${ins.action?`<a class="btn btn-ghost btn-sm ins-cta" href="${ins.action.href}">${esc(ins.action.label)}</a>`:''}
+    </div>
+    <button class="icon-btn ins-dismiss" data-dismiss="${ins.id}" type="button" aria-label="Dismiss this insight">${icon('x')}</button>
+  </div>`;
+}
+
+/* ############################################################
+   js/dashboard.js — Overview view
+   ############################################################ */
+const DAY_MESSAGES=[
+  'Small, consistent check-ins paint a clearer picture than any single day.',
+  'Trends matter more than any one entry — awareness first.',
+  'A missed day is just a gap in the data, not a verdict.',
+  'Tracking works best when it stays light and honest.',
+  'Your data never leaves this browser — explore freely.'];
+
+let ovMetric='activity';
+
+function summaryCard(metric){
+  const m=METRICS[metric];
+  const latest=latestValue(metric);
+  const prevAvg=periodAvg(metric, prevDayRange(7));
+  const series=metricSeries(metric, dayRange(7));
+  let valueHtml;
+  if(latest){
+    const main = metric==='mood' ? MOOD_LABELS[latest.value-1] : fmtValue(metric, latest.value);
+    const unit = metric==='mood' ? `scored ${latest.value}/5` : '';
+    valueHtml=`<span class="stat-value">${main}</span>${unit?`<span class="stat-unit">${unit}</span>`:''}`;
+  } else valueHtml=`<span class="stat-value">—</span><span class="stat-unit">not recorded yet</span>`;
+  let deltaHtml;
+  if(latest && prevAvg!=null){
+    let d=round1(latest.value-prevAvg);
+    if(metric==='water' && settings.waterUnit==='ml') d=round1(d*250);
+    const cls=d>0.04?'up':d<-0.04?'down':'flat';
+    deltaHtml=`<span class="delta ${cls}">${d>0?'+':''}${t1(d)} ${unitShort(metric)}</span><span class="delta-note">vs prior-week avg</span>`;
+  } else deltaHtml=`<span class="delta flat">—</span><span class="delta-note">needs more history</span>`;
+  return `<div class="card stat-card">
+    <div class="stat-top"><span class="stat-ic ${metric}">${icon(m.icon)}</span><span class="stat-label">${m.label}</span></div>
+    <div>${valueHtml}</div>
+    <div class="stat-foot"><div>${deltaHtml}</div>${sparkline(series, cssVar(m.colorVar))}</div>
+  </div>`;
+}
+
+function renderOverview(){
+  applyChartDefaults();
+  const name=settings.name||'there';
+  const h=new Date().getHours();
+  const greeting=h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+  const msg=DAY_MESSAGES[Math.floor((Date.now()/86400000))%DAY_MESSAGES.length];
+  $('#view').innerHTML=`<div class="page">
+    <header class="page-head">
+      <div><p class="eyebrow">Overview</p>
+        <h1 class="page-title">${esc(greeting)}, ${esc(name)}</h1>
+        <p class="page-sub">${fmtDateLong(todayISO())} · ${msg}</p></div>
+      <div class="head-actions">
+        <span class="chip" title="This prototype starts with a small sample dataset so charts and insights are meaningful."><span class="dot"></span>Sample dataset</span>
+        <a class="btn" href="#/wellness">${icon('plus')}Record entry</a>
+      </div>
+    </header>
+
+    <div class="grid-4">${METRIC_KEYS.map(summaryCard).join('')}</div>
+
+    <div class="ov-main">
+      <section class="card" aria-label="Weekly activity chart">
+        <div class="card-head"><h2 class="card-title">Last 7 days</h2>
+          <div class="seg" id="ovSeg" role="group" aria-label="Chart metric">
+            ${['activity','sleep','water'].map(k=>`<button type="button" data-metric="${k}" aria-pressed="${k===ovMetric}">${METRICS[k].label}</button>`).join('')}
+          </div></div>
+        <div class="chart-box"><canvas id="ovChart" role="img" aria-label="Bar chart of the selected wellness metric over the last 7 days"></canvas></div>
+      </section>
+      <section class="card card-pad" aria-label="Wellness insights">
+        <h2 class="card-title" style="margin-bottom:3px">Insights</h2>
+        <p class="hint" style="margin-bottom:13px">Generated from your entries — dismiss anything you don\u2019t find useful.</p>
+        <div class="insights" id="insightList"></div>
+        <p class="ins-note" style="margin-top:12px">${icon('info','ic')} Observations about your recorded data only — not medical advice.</p>
+      </section>
+    </div>
+
+    <div class="ov-bottom">
+      <section class="card" aria-label="Recent entries">
+        <div class="card-head"><h2 class="card-title">Recent entries</h2><a class="btn-quiet" href="#/wellness">View all</a></div>
+        <div id="recentList"></div>
+      </section>
+      <section class="card" aria-label="Quick actions">
+        <div class="card-head"><h2 class="card-title">Quick actions</h2></div>
+        <div class="qa-list">
+          <a class="qa" href="#/wellness"><span class="qa-ic">${icon('plus')}</span><span><span class="qa-t">Record wellness data</span><br><span class="qa-d">Log sleep, water, activity and mood</span></span><span class="qa-chev">${icon('chevron')}</span></a>
+          <a class="qa" href="#/library"><span class="qa-ic">${icon('book')}</span><span><span class="qa-t">Explore the health library</span><br><span class="qa-d">Short guides on sleep, food, movement and more</span></span><span class="qa-chev">${icon('chevron')}</span></a>
+          <a class="qa" href="#/analytics"><span class="qa-ic">${icon('chart')}</span><span><span class="qa-t">View progress</span><br><span class="qa-d">Trends and summaries across your entries</span></span><span class="qa-chev">${icon('chevron')}</span></a>
+          <a class="qa" href="#/settings"><span class="qa-ic">${icon('sliders')}</span><span><span class="qa-t">Edit profile preferences</span><br><span class="qa-d">Name, units, appearance and data controls</span></span><span class="qa-chev">${icon('chevron')}</span></a>
+        </div>
+      </section>
+    </div>
+  </div>`;
+
+  // Insights
+  const list=$('#insightList');
+  const visible=computeInsights().filter(i=>!isDismissed(i.id));
+  list.innerHTML = visible.length ? visible.map(insightCard).join('')
+    : `<p class="hint">No insights right now — they appear as patterns emerge in your entries.</p>`;
+  $$('.ins-dismiss',list).forEach(b=>b.onclick=()=>{ dismissInsight(b.dataset.dismiss); renderOverview(); });
+
+  // Recent entries (read-only here; editing lives in My Wellness)
+  const recent=$('#recentList');
+  if(entries.length===0){
+    recent.innerHTML=emptyState('calendar','No entries yet','Record your first day to see it here.', `<a class="btn" href="#/wellness">${icon('plus')}Record entry</a>`);
+  } else {
+    recent.innerHTML='<ul class="row-list">'+entries.slice(0,5).map(e=>`
+      <li class="row-item"><span class="when">${relDate(e.date)}</span>
+        <span class="entry-chips">${METRIC_KEYS.filter(k=>e[k]!=null).map(k=>
+          `<span class="mchip ${k}">${icon(METRICS[k].icon)}${k==='mood'?MOOD_LABELS[e[k]-1]:fmtValue(k,e[k])}</span>`).join('')}</span>
+      </li>`).join('')+'</ul>';
+  }
+
+  // Weekly chart + metric toggle (rebuilds the chart in place)
+  $$('#ovSeg button').forEach(b=>b.onclick=()=>{
+    ovMetric=b.dataset.metric;
+    $$('#ovSeg button').forEach(x=>x.setAttribute('aria-pressed', x===b));
+    destroyCharts(); buildOverviewChart();
+  });
+  buildOverviewChart();
+}
+function buildOverviewChart(){
+  const cv=$('#ovChart'); if(!cv)return;
+  const r=dayRange(7), labels=[]; for(let d=r.start;d<=r.end;d=addDaysISO(d,1))labels.push(fmtDayShort(d));
+  chartOrFallback(cv, barCfg(labels, metricSeries(ovMetric,r), cssVar(METRICS[ovMetric].colorVar), ovMetric));
+}
+
+/* ############################################################
+   js/wellness.js — My Wellness view (form + CRUD + persistence)
+   ############################################################ */
+let editDate=null;
+
+function moodFaceSvg(){
+  return `<svg viewBox="0 0 24 24" class="mood-face" id="moodFace" aria-hidden="true">
+    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="9" cy="9.5" r="1" fill="currentColor" stroke="none"/>
+    <circle cx="15" cy="9.5" r="1" fill="currentColor" stroke="none"/>
+    <path id="moodMouth" d="M8.2 14.8 Q12 14.7 15.8 14.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+}
+function updateMoodFace(v){
+  const cy=(11.4+((v-1)/4)*6.6).toFixed(1);           // 1 → frown control above, 5 → smile control below
+  $('#moodMouth').setAttribute('d',`M8.2 14.8 Q12 ${cy} 15.8 14.8`);
+  $('#moodFace').style.color = v<=2?cssVar('--clay'):v===3?cssVar('--ink-2'):cssVar('--teal');
+  $('#moodLabel').textContent=`${v}/5 · ${MOOD_LABELS[v-1]}`;
+  $('#f-mood').setAttribute('aria-valuetext',`${v} — ${MOOD_LABELS[v-1]}`);
+}
+function setErr(id,msg){ const e=$('#err-'+id); const inp=$('#f-'+id);
+  if(e){ e.textContent=msg||''; e.hidden=!msg; } if(inp) inp.classList.toggle('invalid',!!msg); }
+
+function renderWellness(){
+  applyChartDefaults();
+  const e = editDate ? entryByDate(editDate) : null;
+  $('#view').innerHTML=`<div class="page">
+    <header class="page-head"><div>
+      <p class="eyebrow">My Wellness</p><h1 class="page-title">Daily wellness entries</h1>
+      <p class="page-sub">One entry per day — add or edit sleep, water, activity and how the day felt overall.</p></div>
+    </header>
+    <div class="notice">${icon('info')}<span><strong>Stored locally.</strong> Entries are saved only in this browser\u2019s localStorage — not on a server, not encrypted, and not synced anywhere. Please don\u2019t treat this as private medical record-keeping.</span></div>
+    <div class="well-grid">
+      <form id="wellForm" class="card card-pad" novalidate>
+        <h2 class="card-title" style="margin-bottom:14px">${e?'Edit entry':'Record an entry'}</h2>
+        ${e?`<div class="edit-banner"><span>Editing the entry for <strong>${esc(fmtDate(e.date))}</strong></span><button type="button" class="btn-quiet" id="btnCancelEdit">Cancel</button></div>`:''}
+        <div class="field"><label for="f-date">Date</label>
+          <input type="date" id="f-date" value="${e?e.date:todayISO()}" max="${todayISO()}">
+          <p class="ferr" id="err-date" hidden></p></div>
+        <div class="field-grid">
+          <div class="field"><label for="f-sleep">Sleep <span class="unit-hint">hours</span></label>
+            <input type="number" id="f-sleep" min="0" max="16" step="0.5" inputmode="decimal" placeholder="e.g. 7.5" value="${e&&e.sleep!=null?e.sleep:''}">
+            <p class="ferr" id="err-sleep" hidden></p></div>
+          <div class="field"><label for="f-water">Water <span class="unit-hint">glasses · 250 ml</span></label>
+            <input type="number" id="f-water" min="0" max="20" step="0.5" inputmode="decimal" placeholder="e.g. 6" value="${e&&e.water!=null?e.water:''}">
+            <p class="ferr" id="err-water" hidden></p></div>
+          <div class="field"><label for="f-activity">Activity <span class="unit-hint">minutes</span></label>
+            <input type="number" id="f-activity" min="0" max="480" step="5" inputmode="numeric" placeholder="e.g. 45" value="${e&&e.activity!=null?e.activity:''}">
+            <p class="ferr" id="err-activity" hidden></p></div>
+        </div>
+        <div class="field">
+          <div class="mood-label-row"><label for="f-mood">General mood</label>
+            <label class="check"><input type="checkbox" id="f-mood-on" ${!e||e.mood!=null?'checked':''}> Include mood</label></div>
+          <div class="mood-row">
+            <input type="range" id="f-mood" min="1" max="5" step="1" value="${e&&e.mood!=null?e.mood:3}" aria-describedby="moodDesc">
+            ${moodFaceSvg()}<span class="mood-value" id="moodLabel"></span></div>
+          <p class="hint" id="moodDesc" style="margin-top:7px">A simple 1–5 self-rating of how the day felt overall — a journaling aid, not a diagnostic tool.</p>
+        </div>
+        <div class="form-banner" id="formError" hidden></div>
+        <div class="form-actions">
+          <button type="submit" class="btn" id="btnSave">${icon('check')}${e?'Update entry':'Save entry'}</button>
+          <span class="hint">${e?'Clearing a field removes that metric.':'Blank fields are simply left unrecorded for that day.'}</span>
+        </div>
+      </form>
+
+      <section class="card" aria-label="Saved entries">
+        <div class="card-head"><h2 class="card-title">Your entries</h2><span class="list-count" id="wellCount"></span></div>
+        <div id="wellList"></div>
+      </section>
+    </div></div>`;
+
+  updateMoodFace(Number($('#f-mood').value));
+  $('#f-mood').addEventListener('input',e=>updateMoodFace(Number(e.target.value)));
+  if(e) $('#btnCancelEdit').onclick=()=>{ editDate=null; renderWellness(); };
+
+  renderWellList();
+
+  $('#wellForm').addEventListener('submit',ev=>{
+    ev.preventDefault();
+    ['date','sleep','water','activity'].forEach(k=>setErr(k,''));
+    $('#formError').hidden=true;
+    const errs={}, val={ date:$('#f-date').value };
+    if(!val.date) errs.date='Please pick a date.';
+    else if(val.date>todayISO()) errs.date='The date can\u2019t be in the future.';
+    const num=id=>{ const raw=$(id).value.trim(); return raw===''?undefined:Number(raw); };
+    const sleep=num('#f-sleep'), water=num('#f-water'), activity=num('#f-activity');
+    if(sleep!==undefined && (isNaN(sleep)||sleep<0||sleep>16)) errs.sleep='Sleep must be a number between 0 and 16 hours.';
+    if(water!==undefined && (isNaN(water)||water<0||water>20)) errs.water='Water must be between 0 and 20 glasses.';
+    if(activity!==undefined && (isNaN(activity)||activity<0||activity>480)) errs.activity='Activity must be between 0 and 480 minutes.';
+    const moodOn=$('#f-mood-on').checked;
+    if(!moodOn && sleep===undefined && water===undefined && activity===undefined)
+      $('#formError').textContent='Record at least one metric — sleep, water or activity — or include mood.' , $('#formError').hidden=false;
+    const bad=Object.keys(errs)[0];
+    if(bad){ setErr(bad,errs[bad]); $('#f-'+bad).focus(); return; }
+    if(!$('#formError').hidden) return;
+
+    upsertEntry(val.date, {
+      sleep:   sleep===undefined?undefined:round1(sleep),
+      water:   water===undefined?undefined:round1(water),
+      activity:activity===undefined?undefined:Math.round(activity),
+      mood:    moodOn?Number($('#f-mood').value):undefined
+    });
+    editDate=null;
+    toast('success',`Entry saved for ${fmtDate(val.date)}`);
+    renderWellness();
+  });
+}
+function metricChips(e){
+  return METRIC_KEYS.filter(k=>e[k]!=null).map(k=>
+    `<span class="mchip ${k}">${icon(METRICS[k].icon)}${k==='mood'?MOOD_LABELS[e[k]-1]:fmtValue(k,e[k])}</span>`).join('');
+}
+let showAllEntries=false;
+function renderWellList(){
+  const box=$('#wellList');
+  $('#wellCount').textContent=`${entries.length} day${entries.length===1?'':'s'} stored`;
+  if(entries.length===0){
+    box.innerHTML=emptyState('calendar','Nothing recorded yet','Add your first entry with the form — it will appear here and everywhere else in the app.');
+    return;
+  }
+  const list=showAllEntries?entries:entries.slice(0,10);
+  box.innerHTML='<ul class="row-list">'+list.map(e=>`
+    <li class="row-item">
+      <div class="entry-date"><span class="ed-day">${parseISO(e.date).getDate()}</span><span class="ed-mon">${parseISO(e.date).toLocaleDateString(undefined,{month:'short'})}</span></div>
+      <span class="entry-chips">${metricChips(e)}</span>
+      <span class="entry-actions">
+        <button class="icon-btn" type="button" data-edit="${e.id}" aria-label="Edit entry for ${esc(fmtDate(e.date))}">${icon('pencil')}</button>
+        <button class="icon-btn danger" type="button" data-del="${e.id}" aria-label="Delete entry for ${esc(fmtDate(e.date))}">${icon('trash')}</button>
+      </span></li>`).join('')+'</ul>'
+    +(entries.length>10?`<div class="list-foot"><button class="btn-quiet" id="btnShowAll">${showAllEntries?'Show recent 10 only':'Show all '+entries.length+' entries'}</button></div>`:'');
+  $$('[data-edit]',box).forEach(b=>b.onclick=()=>{ editDate=entries.find(e=>e.id===b.dataset.edit).date; renderWellness(); $('#view').scrollIntoView(); });
+  $$('[data-del]',box).forEach(b=>b.onclick=()=>{
+    const e=entries.find(x=>x.id===b.dataset.del);
+    confirmDialog({ title:'Delete this entry?', danger:true, confirmLabel:'Delete entry',
+      body:`This permanently removes the entry for <strong>${esc(fmtDate(e.date))}</strong> from this browser. It cannot be undone.`,
+      onConfirm(){ deleteEntry(e.id); toast('success','Entry deleted'); renderWellness(); } });
+  });
+  const sa=$('#btnShowAll'); if(sa) sa.onclick=()=>{ showAllEntries=!showAllEntries; renderWellList(); };
+}
+
+/* ############################################################
+   js/analytics.js — Progress & Analytics view
+   ############################################################ */
+let anState={ period:7, metric:'activity' };
+
+function compareInfo(metric, n){
+  const cur=recorded(metric,dayRange(n)), prev=recorded(metric,prevDayRange(n));
+  if(cur.length<2||prev.length<2)
+    return { status:'insufficient',
+      text:`Not enough data yet — a comparison needs at least 2 recorded days in each period. You have ${cur.length} in the last ${n} days and ${prev.length} in the ${n} days before that.` };
+  const a=avg(cur), b=avg(prev), d=a-b;
+  const flat=Math.abs(d)<Math.max(metric==='sleep'?0.25:metric==='mood'?0.2:5, Math.abs(b)*0.05);
+  const sign=d>0?'+':'−';
+  return { status:flat?'flat':d>0?'up':'down',
+    text:`Averaging ${fmtValue(metric,round1(a))} — ${flat?'about the same as':(d>0?'up from':'down from')} ${fmtValue(metric,round1(b))} in the previous ${n} days${flat?'':` (${sign}${t1(round1(Math.abs(d)))} ${unitShort(metric)})`}.` };
+}
+
+function renderAnalytics(){
+  applyChartDefaults();
+  $('#view').innerHTML=`<div class="page">
+    <header class="page-head"><div>
+      <p class="eyebrow">Progress &amp; Analytics</p><h1 class="page-title">Trends and summaries</h1>
+      <p class="page-sub">Every number here is computed in your browser from the entries stored locally — sample or your own.</p></div>
+      <div class="head-actions">
+        <div class="seg" id="anPeriod" role="group" aria-label="Period">
+          <button type="button" data-p="7" aria-pressed="${anState.period===7}">Last 7 days</button>
+          <button type="button" data-p="30" aria-pressed="${anState.period===30}">Last 30 days</button></div>
+        <div class="seg" id="anMetric" role="group" aria-label="Metric">
+          ${METRIC_KEYS.map(k=>`<button type="button" data-m="${k}" aria-pressed="${k===anState.metric}">${METRICS[k].label}</button>`).join('')}</div>
+      </div></header>
+    <div id="anBody"></div></div>`;
+  $$('#anPeriod button').forEach(b=>b.onclick=()=>{ anState.period=Number(b.dataset.p); renderAnalytics(); });
+  $$('#anMetric button').forEach(b=>b.onclick=()=>{ anState.metric=b.dataset.m; renderAnalytics(); });
+  renderAnalyticsBody();
+}
+function renderAnalyticsBody(){
+  const {period,metric}=anState, range=dayRange(period), m=METRICS[metric];
+  const series=metricSeries(metric,range), vals=series.filter(v=>v!=null), body=$('#anBody');
+
+  if(vals.length===0){
+    body.innerHTML=`<div class="card">${emptyState('chart','No '+m.label.toLowerCase()+' data in this period',
+      `Nothing was recorded for ${m.label.toLowerCase()} in the last ${period} days. Record a few entries — or reset the sample dataset in Settings — to see trends.`,
+      `<a class="btn" href="#/wellness">${icon('plus')}Record entry</a>`)}</div>`;
+    return;
+  }
+  const a=round1(avg(vals)), comp=compareInfo(metric,period);
+  const total = metric==='mood' ? null : round1(vals.reduce((s,v)=>s+v,0));
+  const modeV = metric==='mood' ? (()=>{const c={};vals.forEach(v=>c[v]=(c[v]||0)+1);return Number(Object.keys(c).reduce((x,y)=>c[x]>=c[y]?x:y));})() : null;
+  const modeCount = modeV!=null ? vals.filter(v=>v===modeV).length : 0;
+  const cmpIcon=comp.status==='up'?'trendUp':comp.status==='down'?'trendDown':'trendFlat';
+  const cmpColor=comp.status==='insufficient'?'var(--amber-soft);color:var(--amber)':comp.status==='up'?'var(--teal-soft);color:var(--teal-strong)':comp.status==='down'?'var(--clay-soft);color:var(--clay)':'var(--surface-2);color:var(--ink-2)';
+
+  const labels=[]; for(let d=range.start;d<=range.end;d=addDaysISO(d,1)) labels.push(period===7?fmtDayShort(d):fmtDayNum(d));
+  const wdLabels=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  body.innerHTML=`
+    <div class="stat3">
+      <div class="card card-pad"><div class="an-big">${metric==='mood'?MOOD_LABELS[modeV-1]+' ('+modeV+'/5)':fmtValue(metric,a).replace(/ (h|min|glasses?|ml)$/,'')}</div>
+        <div class="an-lab">Average recorded ${metric==='mood'?'mood':m.label.toLowerCase()}</div><div class="an-sub">${metric==='mood'?'most frequent rating':'across '+vals.length+' recorded day'+(vals.length===1?'':'s')}</div></div>
+      <div class="card card-pad"><div class="an-big">${metric==='mood'?modeCount+' of '+vals.length:fmtValue(metric,total)}</div>
+        <div class="an-lab">${metric==='mood'?'Days at this rating':'Total recorded'}</div><div class="an-sub">sum of all recorded values in the period</div></div>
+      <div class="card card-pad"><div class="an-big">${vals.length}<span class="stat-unit">/ ${period}</span></div>
+        <div class="an-lab">Days recorded</div><div class="an-sub">days with a value — gaps are excluded, not counted as zero</div></div>
+    </div>
+
+    <div class="compare-card card">
+      <span class="cmp-ic" style="background:${cmpColor}">${icon(comp.status==='insufficient'?'info':cmpIcon)}</span>
+      <div><h3>Compared with the previous ${period} days</h3><p>${comp.text}</p></div>
+    </div>
+
+    <div class="an-two">
+      <section class="card" aria-label="Trend chart">
+        <div class="card-head"><h2 class="card-title">${m.label} — last ${period} days</h2><span class="hint">dashed line = period average</span></div>
+        <div class="chart-box"><canvas id="anTrend" role="img" aria-label="Line chart of ${m.label} over the selected period"></canvas></div>
+      </section>
+      <section class="card" aria-label="Weekday distribution">
+        <div class="card-head"><h2 class="card-title">Average by weekday</h2></div>
+        <div class="chart-box"><canvas id="anDist" role="img" aria-label="Bar chart of average ${m.label} per weekday"></canvas></div>
+      </section>
+    </div>
+
+    <section class="card card-pad">
+      <h2 class="card-title" style="margin-bottom:8px">Recorded entries in this period</h2>
+      <p class="hint">${entriesInRange(range.start,range.end).length} day${entriesInRange(range.start,range.end).length===1?'':'s'} with any entry ·
+        ${METRIC_KEYS.map(k=>`${METRICS[k].label} on ${recorded(k,range).length}`).join(' · ')}</p>
+      <div class="sum-chips">${METRIC_KEYS.map(k=>{const c=recorded(k,range).length;
+        return `<span class="mchip ${k}">${icon(METRICS[k].icon)}${METRICS[k].label}: ${c} day${c===1?'':'s'}</span>`;}).join('')}</div>
+    </section>
+
+    <details class="howto"><summary>${icon('info')}How these numbers are calculated</summary><ul>
+      <li><strong>Average</strong> = sum of recorded values ÷ number of days with a recorded value. Days without an entry are excluded, not counted as zero.</li>
+      <li><strong>Total</strong> = sum of all recorded values in the selected period.</li>
+      <li><strong>Days recorded</strong> = count of days in the period where this metric has a value.</li>
+      <li><strong>Comparison</strong> = current-period average minus the previous period\u2019s average (same length). Shown only when both periods have ≥ 2 recorded days — otherwise it says so instead of inventing a trend.</li>
+      <li><strong>Weekday chart</strong> = average value for each weekday, using recorded days only.</li>
+      <li>All values come from the same local dataset as every other view in Healthive.</li>
+    </ul></details>`;
+
+  chartOrFallback($('#anTrend'), lineCfg(labels, series, cssVar(m.colorVar), metric, a));
+  chartOrFallback($('#anDist'), barCfg(wdLabels, weekdayAverages(metric, range), cssVar(m.colorVar), metric));
+}
+
+/* ############################################################
+   js/library.js — searchable health education library
+   ############################################################ */
+let libState={ q:'', cat:'All', openId:null };
+
+function renderLibrary(){
+  applyChartDefaults();
+  libState.openId=null;
+  $('#view').innerHTML=`<div class="page">
+    <header class="page-head"><div>
+      <p class="eyebrow">Health Library</p><h1 class="page-title">Short, sourced guides</h1>
+      <p class="page-sub">General educational information from reputable public-health organisations — never a substitute for personal medical advice.</p></div>
+    </header>
+    <div class="lib-controls">
+      <div class="search-wrap">${icon('search')}<input type="search" id="libSearch" placeholder="Search guides…" aria-label="Search the health library" value="${esc(libState.q)}"></div>
+    </div>
+    <div class="cat-row" id="libCats" role="group" aria-label="Filter by category"></div>
+    <div id="libContent"></div></div>`;
+  $('#libSearch').addEventListener('input',e=>{ libState.q=e.target.value; renderLibList(); });
+  renderLibCats(); renderLibList();
+}
+function renderLibCats(){
+  $('#libCats').innerHTML=['All',...LIB_CATS].map(c=>
+    `<button type="button" class="cat-btn" data-cat="${esc(c)}" aria-pressed="${c===libState.cat}">${esc(c)}</button>`).join('');
+  $$('#libCats .cat-btn').forEach(b=>b.onclick=()=>{ libState.cat=b.dataset.cat; renderLibCats(); renderLibList(); });
+}
+function renderLibList(){
+  const box=$('#libContent');
+  if(libState.openId){ renderArticle(box); return; }
+  const q=libState.q.trim().toLowerCase();
+  let items=LIBRARY.filter(a=>(libState.cat==='All'||a.cat===libState.cat) &&
+    (!q || (a.title+' '+a.intro+' '+a.cat+' '+a.points.join(' ')).toLowerCase().includes(q)));
+  if(items.length===0){
+    box.innerHTML=`<div class="card">${emptyState('search','No guides match \u201c'+esc(libState.q.trim())+'\u201d',
+      'Try a broader term, or browse a different category.',
+      `<button type="button" class="btn btn-ghost" id="btnClearSearch">${icon('refresh')}Clear search &amp; filters</button>`)}</div>`;
+    const c=$('#btnClearSearch'); if(c)c.onclick=()=>{ libState.q=''; libState.cat='All'; $('#libSearch').value=''; renderLibCats(); renderLibList(); };
+    return;
+  }
+  box.innerHTML=`<div class="lib-grid">`+items.map(a=>`
+    <button type="button" class="article-card" data-open="${a.id}">
+      <span class="ac-cat">${esc(a.cat)}</span>
+      <span class="ac-title">${esc(a.title)}</span>
+      <span class="ac-intro">${esc(a.intro)}</span>
+      <span class="ac-read">Read guide ${icon('arrow')}</span>
+    </button>`).join('')+`</div>`;
+  $$('[data-open]',box).forEach(b=>b.onclick=()=>{ libState.openId=b.dataset.open; renderLibList(); $('#view').scrollIntoView(); });
+}
+function renderArticle(box){
+  const a=LIBRARY.find(x=>x.id===libState.openId);
+  box.innerHTML=`<article class="article">
+    <button type="button" class="btn btn-ghost btn-sm" id="btnBack">${icon('chevron')}All articles</button>
+    <p class="ac-cat" style="margin-top:20px">${esc(a.cat)}</p>
+    <h1 class="page-title">${esc(a.title)}</h1>
+    <p class="lede">${esc(a.intro)}</p>
+    <h2>Key points</h2>
+    <ul class="points">${a.points.map(p=>`<li>${icon('check')}<span>${esc(p)}</span></li>`).join('')}</ul>
+    <h2>References &amp; further reading</h2>
+    <ul class="refs">${a.refs.map(r=>`<li>${icon('external')}<span>${esc(r[0])} — <a href="${r[1]}" target="_blank" rel="noopener noreferrer">${esc(r[1].replace(/^https?:\/\//,'').replace(/\/$/,''))}</a></span></li>`).join('')}</ul>
+    <div class="disclaimer">${icon('info')}<span><strong>Not personal medical advice.</strong> ${esc(ARTICLE_DISCLAIMER)}</span></div>
+  </article>`;
+  $('#btnBack').onclick=()=>{ libState.openId=null; renderLibList(); $('#view').scrollIntoView(); };
+}
+
+/* ############################################################
+   js/settings.js — profile, appearance, units, data controls
+   ############################################################ */
+function renderSettings(){
+  applyChartDefaults();
+  const nEntries=entries.length;
+  $('#view').innerHTML=`<div class="page">
+    <header class="page-head"><div>
+      <p class="eyebrow">Settings</p><h1 class="page-title">Preferences &amp; data</h1>
+      <p class="page-sub">Everything here is saved in this browser only. No account, no server, no sync.</p></div></header>
+    <div class="set-stack">
+
+      <form class="card" id="nameForm">
+        <div class="set-row">
+          <div><h3>Demo profile name</h3><p>Used in the greeting and the sidebar. This prototype has no authentication.</p></div>
+          <div style="max-width:260px"><input type="text" id="setName" maxlength="40" value="${esc(settings.name)}" aria-label="Demo profile name"></div>
+          <button type="submit" class="btn btn-ghost btn-sm">${icon('check')}Save</button>
+        </div>
+      </form>
+
+      <div class="card"><div class="set-row">
+        <div><h3>Appearance</h3><p>Light or dark. Defaults to your system preference on first visit.</p></div>
+        <div class="seg" id="segTheme" role="group" aria-label="Appearance">
+          <button type="button" data-val="light" aria-pressed="${settings.theme!=='dark'}">${icon('sun')}Light</button>
+          <button type="button" data-val="dark" aria-pressed="${settings.theme==='dark'}">${icon('moon')}Dark</button></div>
+      </div></div>
+
+      <div class="card"><div class="set-row">
+        <div><h3>Water units</h3><p>Stored values are always glasses; this only changes how they\u2019re displayed (1 glass = 250 ml).</p></div>
+        <div class="seg" id="segUnits" role="group" aria-label="Water units">
+          <button type="button" data-val="glasses" aria-pressed="${settings.waterUnit!=='ml'}">Glasses</button>
+          <button type="button" data-val="ml" aria-pressed="${settings.waterUnit==='ml'}">Millilitres</button></div>
+      </div></div>
+
+      <div class="card">
+        <div class="set-row"><div><h3>Your data</h3><p>${nEntries} day${nEntries===1?'':'s'} currently stored in this browser\u2019s localStorage. Nothing is sent anywhere, nothing is encrypted, and clearing your browser data will remove it. Please don\u2019t store sensitive information in this prototype.</p></div></div>
+        <div class="data-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="btnExport">${icon('download')}Export as JSON</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btnReset">${icon('refresh')}Reset to sample data</button>
+          <button type="button" class="btn btn-danger btn-sm" id="btnDeleteAll">${icon('trash')}Delete all entries</button>
+        </div>
+      </div>
+
+      <div class="card card-pad">
+        <h3 style="font-size:14px;margin-bottom:6px">About Healthive</h3>
+        <p class="hint" style="line-height:1.6">Healthive is a frontend prototype built with HTML, CSS, vanilla JavaScript and Chart.js. It helps you understand health information and track selected wellness metrics — it is <strong>not</strong> a medical device, does not diagnose anything, and is not a replacement for doctors or emergency services. Phase 2 (planned): a Python backend, a real database and secure authentication, as described in the README.</p>
+      </div>
+    </div></div>`;
+
+  $('#nameForm').addEventListener('submit',e=>{
+    e.preventDefault();
+    const v=$('#setName').value.trim();
+    if(!v){ toast('error','Please enter a name (or restore the default).'); $('#setName').focus(); return; }
+    settings.name=v; saveSettings(); refreshChrome(); toast('success','Profile name saved');
+  });
+  $$('#segTheme button').forEach(b=>b.onclick=()=>{
+    settings.theme=b.dataset.val; saveSettings();
+    document.documentElement.setAttribute('data-theme',settings.theme);
+    destroyCharts(); toast('info','Appearance updated'); renderSettings();
+  });
+  $$('#segUnits button').forEach(b=>b.onclick=()=>{
+    settings.waterUnit=b.dataset.val; saveSettings();
+    toast('info','Water units updated'); renderSettings();
+  });
+  $('#btnExport').onclick=()=>{
+    const blob=new Blob([JSON.stringify({app:'Healthive prototype', exportedAt:new Date().toISOString(), settings, entries},null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='healthive-export-'+todayISO()+'.json'; a.click(); URL.revokeObjectURL(a.href);
+    toast('success','Export downloaded');
+  };
+  $('#btnReset').onclick=()=>confirmDialog({ title:'Reset to sample data?', confirmLabel:'Reset data',
+    body:'This replaces your current entries with a fresh sample dataset so you can explore the interface. Your preferences (name, theme, units) are kept.',
+    onConfirm(){ entries=seedEntries(); saveEntries(); dismissInsightReset(); toast('success','Sample dataset restored'); renderSettings(); } });
+  $('#btnDeleteAll').onclick=()=>confirmDialog({ title:'Delete all entries?', danger:true, confirmLabel:'Delete everything',
+    body:'This <strong>permanently removes every wellness entry</strong> stored in this browser. The app will show empty states until you record new entries. This cannot be undone.',
+    onConfirm(){ entries=[]; saveEntries(); dismissInsightReset(); toast('success','All entries deleted'); renderSettings(); } });
+}
+function dismissInsightReset(){ dismissed=dismissed.filter(d=>false); saveDismissed(); } // insights recompute from scratch
+
+/* ############################################################
+   js/app.js — router, navigation, drawer, theme, init
+   ############################################################ */
+const NAV=[
+  { id:'overview',  label:'Overview',            icon:'grid'    },
+  { id:'wellness',  label:'My Wellness',         icon:'pulse'   },
+  { id:'analytics', label:'Progress & Analytics',icon:'chart'   },
+  { id:'library',   label:'Health Library',      icon:'book'    },
+  { id:'settings',  label:'Settings',            icon:'sliders' }];
+const VIEWS={ overview:renderOverview, wellness:renderWellness, analytics:renderAnalytics, library:renderLibrary, settings:renderSettings };
+
+ $('#navList').innerHTML=NAV.map(n=>`<a class="nav-item" href="#/${n.id}" data-route="${n.id}">${icon(n.icon)}<span>${n.label}</span></a>`).join('');
+ $('#btnMenu').innerHTML=icon('menu'); $('#btnCloseSide').innerHTML=icon('x');
+
+const currentRoute=()=>{ const h=location.hash.replace(/^#\//,''); return VIEWS[h]?h:'overview'; };
+function refreshChrome(){
+  $('#sideUserName').textContent=settings.name||'Demo profile';
+  $('#sideUserInitials').textContent=(settings.name||'H').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase()||'H';
+}
+function openDrawer(){ $('#sidebar').classList.add('open'); const o=$('#drawerOverlay'); o.hidden=false; requestAnimationFrame(()=>o.classList.add('show')); document.body.classList.add('locked'); }
+function closeDrawer(){ $('#sidebar').classList.remove('open'); const o=$('#drawerOverlay'); o.classList.remove('show'); setTimeout(()=>{o.hidden=true;},220); document.body.classList.remove('locked'); }
+
+function navigate(){
+  destroyCharts();
+  const r=currentRoute();
+  if(r!=='wellness') editDate=null;
+  $$('.nav-item').forEach(a=>{ const on=a.dataset.route===r; a.classList.toggle('active',on);
+    on?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'); });
+  closeDrawer();
+  VIEWS[r]();
+  window.scrollTo({top:0});
+  $('#view').focus({preventScroll:true});
+}
+window.addEventListener('hashchange',navigate);
+ $('#btnMenu').onclick=openDrawer;
+ $('#btnCloseSide').onclick=closeDrawer;
+ $('#drawerOverlay').onclick=closeDrawer;
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&$('#sidebar').classList.contains('open'))closeDrawer(); });
+ $('#sideUser').onclick=()=>{ location.hash='#/settings'; };
+
+initData(); refreshChrome(); navigate();
+
+})();
+</script>
+</body>
+</html>
